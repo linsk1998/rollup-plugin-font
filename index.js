@@ -43,9 +43,6 @@ function font(options = {}) {
 		if (!css.name) {
 			css.name = options.name;
 		}
-		if (!css.compat) {
-			css.compat = false;
-		}
 		if (!css.prefix) {
 			css.prefix = options.prefix;
 		}
@@ -72,10 +69,16 @@ function font(options = {}) {
 	var json = convert.xml2js(xml, { alwaysChildren: true });
 	var font = find(find(find(json, "svg"), "defs"), "font");
 	var fontId = font.attributes.id;
+	var space;
 	var unicodeMap = new Map();
 	font.elements.forEach(function(ele) {
 		if (ele.type === 'element' && ele.name === 'glyph') {
-			unicodeMap.set(ele.attributes['glyph-name'], ele.attributes['unicode']);
+			var name=ele.attributes['glyph-name']
+			var char=ele.attributes['unicode'];
+			unicodeMap.set(name, char);
+			if(char==" "){
+				space=name;
+			}
 		}
 	});
 	return {
@@ -114,8 +117,8 @@ function font(options = {}) {
 			if (unicode) {
 				if (id == PREFIX + unicode.module) {
 					var unicodeModule = [];
-					unicodeMap.forEach(function(code, name) {
-						unicodeModule.push("export var " + unicode.namedExports(unicode.prefix + name) + '="' + code + '";');
+					unicodeMap.forEach(function(char, name) {
+						unicodeModule.push("export var " + unicode.namedExports(unicode.prefix + name) + '="' + getJsUnicode(char) + '";');
 					});
 					return unicodeModule.join("\n");
 				}
@@ -143,8 +146,8 @@ function font(options = {}) {
 				const unicodeFilter = createFilter(unicode.include);
 				if (unicodeFilter(id)) {
 					var unicodeModule = [];
-					unicodeMap.forEach(function(code, name) {
-						unicodeModule.push("export var " + unicode.namedExports(unicode.prefix + name) + '="' + code + '";');
+					unicodeMap.forEach(function(char, name) {
+						unicodeModule.push("export var " + unicode.namedExports(unicode.prefix + name) + '="' + getJsUnicode(char) + '";');
 					});
 					return unicodeModule.join("\n");
 				}
@@ -154,6 +157,9 @@ function font(options = {}) {
 			//console.log(options_);
 			//console.log(bundle);
 			var exps = new Set(options.whiteList);
+			if(space){
+				exps.add(space);
+			}
 			for (var chunkId of Object.keys(bundle)) {
 				var chunk = bundle[chunkId];
 				var importedBindings;
@@ -241,6 +247,15 @@ function font(options = {}) {
 				}
 				return true;
 			});
+			if(!space){
+				font.elements.unshift({
+					type:'element',
+					name:'glyph',
+					attributes:{
+						'unicode':" "
+					}
+				});
+			}
 			if (count === 0) {
 				console.log("no font found in " + options.name);
 				return;
@@ -288,7 +303,7 @@ function font(options = {}) {
 			}
 			if (options.output.includes("eot")) {
 				var eot = ttf2eot(ttf.buffer);
-				console.log(options.name + ".ttf - " + filesize(eot.length));
+				console.log(options.name + ".eot - " + filesize(eot.length));
 				refs.eot = this.emitFile({
 					type: 'asset',
 					name: options.name + '.eot',
@@ -309,8 +324,6 @@ function font(options = {}) {
 						map_compat = new Map();
 						cssCompatMap.set(css.name, map_compat);
 					}
-				} else if (css.compat !== false) {
-					map_compat = map;
 				}
 				var cssOut;
 				var common = [];
@@ -324,10 +337,15 @@ function font(options = {}) {
 					cssOut = [];
 					//.fa-envira:before{ content:"\f299";}
 					var className = "." + css.prefix + name;
-					cssOut.push(className + ':before{ content:"' + char + '"}');
+					cssOut.push(className + ':before{ content:"' + getCssUnicode(char) + '"}');
 					if (css.compat !== false) {
 						//.fa-glass{ *zoom:expression(this.runtimeStyle['zoom']='1',this.innerHTML='&#xf000;')}
-						map_compat.set(className, className + "{ *zoom:expression(this.runtimeStyle['zoom']='1',this.innerHTML='" + char + "')}");
+						var cssText = className + "{ *zoom:expression(this.runtimeStyle['zoom']='1',this.innerHTML='" + getHtmlUnicode(char) + "')}";
+						if(css.compat){
+							map_compat.set(className, cssText);
+						}else{
+							cssOut.push(cssText);
+						}
 					}
 					if (!css.common) {
 						common.push(className);
@@ -422,6 +440,15 @@ function find(node, name) {
 	return node.elements.find(function(node) {
 		return node.name === name;
 	});
+}
+function getJsUnicode(char){
+	return "\\u"+char.charCodeAt(0).toString(16).padStart(4,"0");
+}
+function getCssUnicode(char){
+	return "\\"+char.charCodeAt(0).toString(16).padStart(4,"0");
+}
+function getHtmlUnicode(char){
+	return "&#x"+char.charCodeAt(0).toString(16)+";";
 }
 
 font.default = font;

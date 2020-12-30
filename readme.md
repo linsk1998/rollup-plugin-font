@@ -253,6 +253,8 @@ module export name to icon name function. default is kebab-case.
 
 ## module exports
 
+"getCssFile","getCompatCssFile" the two function is export to get file path
+
 ```javascript
 import font from "rollup-plugin-font";
 import {getCssFile,getCompatCssFile} from "rollup-plugin-font";
