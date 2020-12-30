@@ -55,19 +55,6 @@ function font(options = {}) {
 		if (!css.namedIcon) {
 			css.namedIcon = options.namedIcon;
 		}
-		if (css.common) {
-			if (typeof css.common === "string") {
-				css.common = {
-					name: css.common
-				};
-			}
-			if (!css.common.namedExports) {
-				css.common.namedExports = css.namedExports;
-			}
-			if (!css.common.namedIcon) {
-				css.common.namedIcon = css.namedIcon;
-			}
-		}
 	}
 	var unicode = options.unicode;
 	if (unicode) {
@@ -115,11 +102,11 @@ function font(options = {}) {
 					unicodeMap.forEach(function(code, name) {
 						cssModule.push("export var " + css.namedExports(css.prefix + name) + '="' + css.prefix + name + '";');
 						if (css.common) {
-							cssModule.push("export var " + css.common.name+"_"+css.common.namedExports(css.prefix+name) + '="' + css.common.name + " " + css.prefix + name + '";');
+							cssModule.push("export var " + css.common+"_"+css.namedExports(css.prefix+name) + '="' + css.common + " " + css.prefix + name + '";');
 						}
 					});
 					if (css.common) {
-						cssModule.push("export var " + css.namedExports(css.common.name) + '="' + css.common.name + '";');
+						cssModule.push("export var " + css.namedExports(css.common) + '="' + css.common + '";');
 					}
 					return cssModule.join("\n");
 				}
@@ -143,11 +130,11 @@ function font(options = {}) {
 					unicodeMap.forEach(function(code, name) {
 						cssModule.push("export var " + css.namedExports(css.prefix+name) + '="' + css.prefix + name + '";');
 						if (css.common) {
-							cssModule.push("export var " + css.common.name+"_"+css.common.namedExports(css.prefix+name) + '="' + css.common.name + " " + css.prefix + name + '";');
+							cssModule.push("export var " + css.common+"_"+css.namedExports(css.prefix+name) + '="' + css.common + " " + css.prefix + name + '";');
 						}
 					});
 					if (css.common) {
-						cssModule.push("export var " + css.namedExports(css.common.name) + '="' + css.common.name + '";');
+						cssModule.push("export var " + css.namedExports(css.common) + '="' + css.common + '";');
 					}
 					return cssModule.join("\n");
 				}
@@ -211,8 +198,8 @@ function font(options = {}) {
 							if (moduleId == PREFIX + css.module || css.include && createFilter(css.include)(moduleId)) {
 								exports.forEach(function(name) {
 									if (css.common) {
-										if (name.startsWith(css.common.name + "_")) {
-											name = name.substr(css.common.name.length + 1);
+										if (name.startsWith(css.common + "_")) {
+											name = name.substr(css.common.length + 1);
 										}
 									}
 									name = css.namedIcon(name);
@@ -328,7 +315,7 @@ function font(options = {}) {
 				var cssOut;
 				var common = [];
 				if (css.common) {
-					common.push("." + css.common.name);
+					common.push("." + css.common);
 				}
 				unicodeMap.forEach(function(char, name) {
 					if (!exps.has(name)) {
@@ -378,9 +365,9 @@ function font(options = {}) {
 }`;
 				cssOut.push(fontDefine);
 				if (css.common) {
-					map.set("." + css.common.name, cssOut.join("\n"));
+					map.set("." + css.common, cssOut.join("\n"));
 				} else {
-					map.set(fontId, cssOut.join("\n"));
+					map.set("@"+options.name, cssOut.join("\n"));
 				}
 				if (options.output.includes("css")) {
 					var fileId;
@@ -407,9 +394,9 @@ function font(options = {}) {
 						];
 						cssOut_compat.push(fontDefine);
 						if (css.common) {
-							map_compat.set("." + css.common.name, cssOut_compat.join("\n"));
+							map_compat.set("." + css.common, cssOut_compat.join("\n"));
 						} else {
-							map_compat.set(fontId, cssOut_compat.join("\n"));
+							map_compat.set("@"+options.name, cssOut_compat.join("\n"));
 						}
 						if (options.outDir) {
 							this.emitFile({

@@ -19,7 +19,7 @@ export default {
 			"include": [
 				"node_modules/fontawesome/**"
 			],
-			//if undefine, file name is use rollup config "output.assetFileNames"
+			//if undefined, file name is use rollup config "output.assetFileNames"
 			"outDir":"fontawesome",
 			//output format
 			"output":['svg', 'ttf', 'eot', 'woff', 'woff2'],
@@ -64,10 +64,7 @@ export default {
 			"css":{
 				"include":["src/font/iconfont.css"],
 				"prefix":"icon-",
-				"common":{
-					"name":"iconfont",
-					"export":true
-				}
+				"common":"iconfont"
 			}
 		})
 	]
@@ -174,12 +171,8 @@ export default {
 			"css":{
 				"name":"fa5",
 				"module":"@fortawesome/fontawesome-free/webfonts/fa-regular-400.css",//this is virtual module
-				"common":{
-					"name":"far",
-					"export":true
-				},
-				"prefix":"fa-",
-				"compat":true
+				"common":"far",
+				"prefix":"fa-"
 			},
 			"output":['svg', 'ttf', 'eot', 'woff', 'woff2']//no css output, css output in next plugin
 		}),
@@ -189,8 +182,7 @@ export default {
 				"name":"fa5",
 				"module":"@fortawesome/fontawesome-free/webfonts/fa-solid-900.css",//this is virtual module
 				"common":"fas",
-				"prefix":"fa-",
-				"compat":true
+				"prefix":"fa-"
 			},
 			"output":['svg', 'ttf', 'eot', 'woff', 'woff2','css']//create css
 		}),
@@ -237,4 +229,74 @@ outcss
 	font-family: "fa-solid-900" !important;
 	...
 }
+```
+
+## Other Options
+
+### name
+
+font name. default is svg file name.
+
+### namedExports
+
+icon name to module export name function. default is camelCase.
+
+### namedIcon
+
+module export name to icon name function. default is kebab-case.
+
+### css.compat
+
+* false, don't generate compat css code/file.
+* true, create a new compat css.
+* undefined(default), generate css code.
+
+## module exports
+
+```javascript
+import font from "rollup-plugin-font";
+import {getCssFile,getCompatCssFile} from "rollup-plugin-font";
+import html from '@rollup/plugin-html';
+
+async function template({ files, publicPath, title }){
+	var index=files.js.find(item=>item.name=="index");
+	return `\ufeff
+<!doctype html>
+<html lang="zh">
+<head>
+<meta charset="utf-8"/>
+<title>${title}</title>
+<link rel="stylesheet" href="${publicPath}${getCssFile("iconfont")}" />
+<!--[if lte IE 7]>
+<link rel="stylesheet" href="${publicPath}${getCompatCssFile("ionicons")}" />
+<![endif]-->
+<!--[if gte IE 8]><!-->
+<link rel="stylesheet" href="${publicPath}${getCssFile("ionicons")}" />
+<!--><![endif]-->
+<link rel="stylesheet" href="${publicPath}${getCssFile("fa5")}" />
+</head>
+<body>
+	<script src="${publicPath}${index.fileName}"></script>
+</body>
+</html>`;
+};
+
+export default {
+	input: './src/index.tsx',
+	output: {
+		dir:'./dist',
+		format: 'iife',
+		assetFileNames:"assets/[name].[hash][extname]",
+	},
+	plugins: [
+		font({
+			...
+		}),
+		...
+		html({
+			title:"ICON DEMO",
+			template:template
+		})
+	]
+};
 ```
