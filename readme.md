@@ -1,7 +1,8 @@
 # Build font file by tree-shaking
+
 # 按需打包字体
 
-## Base Config. FontAwesome 4.X Example.
+## Transform Font File And CSS File To ES Module. Ionicons 2.X/3.X Example.
 
 ```javascript
 import font from "rollup-plugin-font";
@@ -9,22 +10,54 @@ export default {
 	input: './src/index.tsx',
 	output: {
 		dir:'./dist',
-		format: 'iife'
+		format: 'iife',
+		assetFileNames:"assets/[name].[hash][extname]"
 	},
 	plugins: [
 		font({
-			//svg font use as origin font
+			"svg":"./node_modules/ionicons/fonts/ionicons.svg",
+			"css":{
+				"include":["node_modules/ionicons/css/ionicons.css"]
+			},
+			whiteList:["ion-alert"]
+		})
+	]
+};
+```
+Usage
+
+```javascript
+import * as React from "react";
+import * as ReactDOM from "react-dom";
+import {ionEdit,ionEye} from "ionicons/css/ionicons.css";
+
+ReactDOM.render(<>
+	<i className={ionEdit}></i>
+	<i className={ionEye}></i>
+</>,document.body);
+```
+
+
+## Use A Common Css Class. FontAwesome 4.X Example.
+
+```javascript
+import font from "rollup-plugin-font";
+export default {
+	input: './src/index.tsx',
+	output: {
+		dir:'./dist',
+		format: 'iife',
+		assetFileNames:"assets/[name].[hash][extname]"
+	},
+	plugins: [
+		font({
 			"svg":"./node_modules/font-awesome/fonts/fontawesome-webfont.svg",
-			//collect module exports as icon name
-			"include": [
-				"node_modules/fontawesome/**"
-			],
-			//if undefined, file name is use rollup config "output.assetFileNames"
-			"outDir":"fontawesome",
-			//output format
-			"output":['svg', 'ttf', 'eot', 'woff', 'woff2'],
-			//icon list
-			"whiteList":["bell"]
+			"css":{
+				"name":"font-awesome",
+				"include":["node_modules/font-awesome/css/font-awesome.css"],
+				"prefix":"fa-",
+				"common":"fa"
+			}
 		})
 	]
 };
@@ -35,15 +68,15 @@ Usage
 ```javascript
 import * as React from "react";
 import * as ReactDOM from "react-dom";
-import {book} from "fontawesome-solid";//collect module exports by config "include"
+import {fa_faStar,fa,faDesktop} from "font-awesome/css/font-awesome.css";
 
-function IconBook(){
-	return <i className="fas">{book}</i>;
-}
-ReactDOM.render(<IconBook></IconBook>,document.body);
+ReactDOM.render(<>
+	<i className={fa_faStar}></i>
+	<i className={fa+" "+faDesktop}></i>
+</>,document.body);
 ```
 
-## Transform Font File And CSS File To ES Module. Ali Iconfont Example.
+## Use Common Css Class And Unicode. Ali Iconfont Example.
 
 ```javascript
 import font from "rollup-plugin-font";
@@ -99,57 +132,6 @@ outcss
 }
 .iconfont{
 	font-family: "iconfont" !important;
-	...
-}
-```
-
-## Don't Create Common Css Class. Ionicons 2.X/3.X Example.
-
-```javascript
-import font from "rollup-plugin-font";
-export default {
-	input: './src/index.tsx',
-	output: {
-		dir:'./dist',
-		format: 'iife',
-		assetFileNames:"assets/[name].[hash][extname]",
-	},
-	plugins: [
-		font({
-			"svg":"./node_modules/ionicons/fonts/ionicons.svg",
-			"css":{
-				"include":["node_modules/ionicons/css/ionicons.css"]
-			},
-		})
-	]
-};
-```
-Usage
-
-```javascript
-import * as React from "react";
-import * as ReactDOM from "react-dom";
-import {ionEdit,ionEye} from "ionicons/css/ionicons.css";
-
-ReactDOM.render(<>
-	<i className={ionEdit}></i>
-	<i className={ionEye}></i>
-</>,document.body);
-```
-
-outcss
-
-```css
-.ion-edit{ ... }
-.ion-eye{ ... }
-...
-
-@font-face {
-	font-family: "ionicons";
-	...
-}
-.ion-edit,.ion-eye,...{
-	font-family: "ionicons" !important;
 	...
 }
 ```

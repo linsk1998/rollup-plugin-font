@@ -374,14 +374,13 @@ function font(options = {}) {
 					fontValues.push(`url('${basename(this.getFileName(refs.svg))}#${fontId}') format('svg')`);
 				}
 				cssOut.push(`	src: ${fontValues.join(",")};\n}`);
-				var fontDefine = common.join(",") +
-					`{
+				cssOut.push(common.join(",")+
+`{
 	font-family: "${options.name}" !important;
 	font-style: normal;
 	-webkit-font-smoothing: antialiased;
 	-moz-osx-font-smoothing: grayscale;
-}`;
-				cssOut.push(fontDefine);
+}`);
 				if (css.common) {
 					map.set("." + css.common, cssOut.join("\n"));
 				} else {
@@ -405,12 +404,16 @@ function font(options = {}) {
 					}
 					if (css.compat) {
 						var cssOut_compat = [
-							`@font-face {
-	font-family: "${options.name}";
-	src:url('${basename(this.getFileName(refs.eot))}#iefix') format('embedded-opentype');
+`@font-face {
+	*font-family: "${options.name}";
+	*src:url('${basename(this.getFileName(refs.eot))}#iefix') format('embedded-opentype');
 }`
 						];
-						cssOut_compat.push(fontDefine);
+						cssOut_compat.push(common.join(",") +
+`{
+	*font-family: "${options.name}" !important;
+	*font-style: normal;
+}`);
 						if (css.common) {
 							map_compat.set("." + css.common, cssOut_compat.join("\n"));
 						} else {
